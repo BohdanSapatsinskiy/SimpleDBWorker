@@ -33,7 +33,7 @@ namespace usingbd
                     string query = @"
                     SELECT TABLE_NAME 
                     FROM INFORMATION_SCHEMA.TABLES 
-                    WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME != 'sysdiagrams'"; 
+                    WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME != 'sysdiagrams'";
                     SqlCommand command = new SqlCommand(query, connection);
                     SqlDataReader reader = command.ExecuteReader();
 
@@ -51,68 +51,19 @@ namespace usingbd
         }
 
         bool showStatisticDetails = false;
-        string[] statistics = {
-            "Підрахунок фанатів",
-            "Топ 10 історій",
-            "Топ 10 авторів",
-            "Інформація про історії"};
 
-        string procedureName = "";
-        string procedure = "";
         private void listBoxTables_SelectedIndexChanged_1(object sender, EventArgs e)
         {
             if (listBoxTables.SelectedItem != null)
             {
+                string tableName = listBoxTables.SelectedItem.ToString();
                 if (showStatisticDetails == false)
                 {
-                    string tableName = listBoxTables.SelectedItem.ToString();
                     LoadTableContent(tableName);
-                    buttonSave.Visible = true;
                 }
                 else
-                {                   
-                    procedureName = listBoxTables.SelectedItem.ToString();
-
-                    switch (procedureName)
-                    {
-                        case "Інформація про історії":
-                            procedure= "GetClientTotalIncome";
-                            break;
-                        case "Підрахунок фанатів":
-                            procedure = "GetDetailedRevenueByDateRange";
-                            break;
-                        case "Топ 10 історій":
-                            procedure = "GetOrdersWithHighestAverageCheck";
-                            break;
-                        case "Топ 10 авторів":
-                            procedure = "GetRevenueByDateRange";
-                            break;
-                    }
-
-                    using (SqlConnection connection = new SqlConnection(connectDb))
-                    {
-                        try
-                        {
-                            connection.Open();
-
-                            SqlCommand command = new SqlCommand(procedure, connection);
-                            command.CommandType = CommandType.StoredProcedure;
-
-                            SqlDataAdapter adapter = new SqlDataAdapter(command);
-                            DataTable table = new DataTable();
-                            adapter.Fill(table);
-
-                            dataGridViewTable.DataSource = table;
-
-                            labelInfo.Text = procedureName;
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show("Помилка при виконанні процедури: " + ex.Message);
-                        }
-                    }
-
-
+                {
+                    showProcedures(tableName);
                 }
             }
         }
@@ -144,7 +95,7 @@ namespace usingbd
                                 adapter.InsertCommand = builder.GetInsertCommand();
                                 adapter.DeleteCommand = builder.GetDeleteCommand();
 
-                                adapter.Update(changes); 
+                                adapter.Update(changes);
                                 ((DataTable)dataGridViewTable.DataSource).AcceptChanges();
                                 MessageBox.Show("Зміни успішно збережені.");
 
@@ -175,11 +126,7 @@ namespace usingbd
         {
             showStatisticDetails = true;
             buttonSave.Visible = false;
-            listBoxTables.Items.Clear();
-            for (int i = 0; i < statistics.Length; i++)
-            {
-                listBoxTables.Items.Add(statistics[i]);
-            }
+            LoadProcedures();
         }
 
         private void buttonFind_Click(object sender, EventArgs e)
@@ -278,6 +225,58 @@ namespace usingbd
             nameDb = tbDB.Text.ToString();
             connectDb = $"Server={nameServer};Database={nameDb};Trusted_Connection=True;";
             LoadTables();
+        }
+        private void LoadProcedures()
+        {
+            using (SqlConnection connection = new SqlConnection(connectDb))
+            {
+                try
+                {
+                    connection.Open();
+                    string query = @"
+                    SELECT name 
+                    FROM sys.objects 
+                    WHERE type = 'P' AND is_ms_shipped = 0";
+
+                    SqlCommand command = new SqlCommand(query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    listBoxTables.Items.Clear();
+                    while (reader.Read())
+                    {
+                        listBoxTables.Items.Add(reader["name"].ToString());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Помилка при завантаженні процедур: " + ex.Message);
+                }
+            }
+        }
+        private void showProcedures(string comandName)
+        {
+            using (SqlConnection connection = new SqlConnection(connectDb))
+            {
+                try
+                {
+                    connection.Open();
+
+                    SqlCommand command = new SqlCommand(comandName, connection);
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    SqlDataAdapter adapter = new SqlDataAdapter(command);
+                    DataTable table = new DataTable();
+                    adapter.Fill(table);
+
+                    dataGridViewTable.DataSource = table;
+
+                    labelInfo.Text = comandName;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Помилка при виконанні процедури: " + ex.Message);
+                }
+            }
         }
         private void LoadTableContent(string tableName)
         {
