@@ -66,26 +66,7 @@ namespace usingbd
                 if (showStatisticDetails == false)
                 {
                     string tableName = listBoxTables.SelectedItem.ToString();
-
-                    using (SqlConnection connection = new SqlConnection(connectDb))
-                    {
-                        try
-                        {
-                            connection.Open();
-                            string query = $"SELECT * FROM [{tableName}]";
-                            SqlDataAdapter adapter = new SqlDataAdapter(query, connection);
-                            DataTable table = new DataTable();
-                            adapter.Fill(table);
-
-                            dataGridViewTable.DataSource = table;
-                            labelInfo.Text = "Таблиця: " + tableName;
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
-                        }
-                    }
-
+                    LoadTableContent(tableName);
                     buttonSave.Visible = true;
                 }
                 else
@@ -163,28 +144,11 @@ namespace usingbd
                                 adapter.InsertCommand = builder.GetInsertCommand();
                                 adapter.DeleteCommand = builder.GetDeleteCommand();
 
-                                adapter.Update(changes); // Застосовуємо зміни до бази даних
-                                ((DataTable)dataGridViewTable.DataSource).AcceptChanges(); // Очищаємо зміни
+                                adapter.Update(changes); 
+                                ((DataTable)dataGridViewTable.DataSource).AcceptChanges();
                                 MessageBox.Show("Зміни успішно збережені.");
 
-                                using (SqlConnection newConnection = new SqlConnection("Server=VITALIK\\MSSQLSERVER01;Database=candy_store;Trusted_Connection=True;"))
-                                {
-                                    try
-                                    {
-                                        connection.Open();
-                                        string query = $"SELECT * FROM [{tableName}]";
-                                        SqlDataAdapter newAdapter = new SqlDataAdapter(query, newConnection);
-                                        DataTable table = new DataTable();
-                                        newAdapter.Fill(table);
-
-                                        dataGridViewTable.DataSource = table;
-                                        labelInfo.Text = "Таблиця: " + tableName;
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
-                                    }
-                                }
+                                LoadTableContent(tableName);
                             }
                             else
                             {
@@ -314,7 +278,27 @@ namespace usingbd
             nameDb = tbDB.Text.ToString();
             connectDb = $"Server={nameServer};Database={nameDb};Trusted_Connection=True;";
             LoadTables();
+        }
+        private void LoadTableContent(string tableName)
+        {
+            using (SqlConnection connection = new SqlConnection(connectDb))
+            {
+                try
+                {
+                    connection.Open();
+                    string query = $"SELECT * FROM [{tableName}]";
+                    SqlDataAdapter adapter = new SqlDataAdapter(query, connection);
+                    DataTable table = new DataTable();
+                    adapter.Fill(table);
 
+                    dataGridViewTable.DataSource = table;
+                    labelInfo.Text = "Таблиця: " + tableName;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
+                }
+            }
         }
     }
 }
