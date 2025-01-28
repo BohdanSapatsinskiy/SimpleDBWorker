@@ -50,6 +50,53 @@ namespace usingbd
             }
         }
 
+        private void LoadTableContent(string tableName)
+        {
+            using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+            {
+                try
+                {
+                    connection.Open();
+                    string query = $"SELECT * FROM [{tableName}]";
+                    SqlDataAdapter adapter = new SqlDataAdapter(query, connection);
+                    DataTable table = new DataTable();
+                    adapter.Fill(table);
+
+                    dataGridViewTable.DataSource = table;
+                    labelInfo.Text = "Таблиця: " + tableName;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
+                }
+            }
+        }
+        private void showProcedure(string comandName, string message)
+        {
+            using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+            {
+                try
+                {
+                    connection.Open();
+
+                    SqlCommand command = new SqlCommand(comandName, connection);
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    SqlDataAdapter adapter = new SqlDataAdapter(command);
+                    DataTable table = new DataTable();
+                    adapter.Fill(table);
+
+                    dataGridViewTable.DataSource = table;
+
+                    labelInfo.Text = message;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Помилка при виконанні процедури: " + ex.Message);
+                }
+            }
+        }
+
         bool showStatisticDetails = false;
         string[] statistics = {
             "Підрахунок фанатів",
@@ -67,24 +114,7 @@ namespace usingbd
                 {
                     string tableName = listBoxTables.SelectedItem.ToString();
 
-                    using (SqlConnection connection = new SqlConnection(conectingInf))
-                    {
-                        try
-                        {
-                            connection.Open();
-                            string query = $"SELECT * FROM [{tableName}]";
-                            SqlDataAdapter adapter = new SqlDataAdapter(query, connection);
-                            DataTable table = new DataTable();
-                            adapter.Fill(table);
-
-                            dataGridViewTable.DataSource = table;
-                            labelInfo.Text = "Таблиця: " + tableName;
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
-                        }
-                    }
+                    LoadTableContent(tableName);
 
                     buttonSave.Visible = true;
                 }
@@ -108,29 +138,7 @@ namespace usingbd
                             break;
                     }
 
-                    using (SqlConnection connection = new SqlConnection(conectingInf))
-                    {
-                        try
-                        {
-                            connection.Open();
-
-                            SqlCommand command = new SqlCommand(procedure, connection);
-                            command.CommandType = CommandType.StoredProcedure;
-
-                            SqlDataAdapter adapter = new SqlDataAdapter(command);
-                            DataTable table = new DataTable();
-                            adapter.Fill(table);
-
-                            dataGridViewTable.DataSource = table;
-
-                            labelInfo.Text = procedureName;
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show("Помилка при виконанні процедури: " + ex.Message);
-                        }
-                    }
-
+                    showProcedure(procedure, procedureName);
 
                 }
             }
@@ -167,24 +175,8 @@ namespace usingbd
                                 ((DataTable)dataGridViewTable.DataSource).AcceptChanges(); // Очищаємо зміни
                                 MessageBox.Show("Зміни успішно збережені.");
 
-                                using (SqlConnection newConnection = new SqlConnection(conectingInf))
-                                {
-                                    try
-                                    {
-                                        connection.Open();
-                                        string query = $"SELECT * FROM [{tableName}]";
-                                        SqlDataAdapter newAdapter = new SqlDataAdapter(query, newConnection);
-                                        DataTable table = new DataTable();
-                                        newAdapter.Fill(table);
 
-                                        dataGridViewTable.DataSource = table;
-                                        labelInfo.Text = "Таблиця: " + tableName;
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
-                                    }
-                                }
+                                LoadTableContent(tableName);
                             }
                             else
                             {
