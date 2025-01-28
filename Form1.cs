@@ -19,9 +19,13 @@ namespace usingbd
             InitializeComponent();
             LoadTables();
         }
+        static string serverName = "MSI";
+        static string dataBaseName = "stories_site";
+
+        string conectingInf = $"Server={serverName};Database={dataBaseName};Trusted_Connection=True;";
         private void LoadTables()
         {
-            using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+            using (SqlConnection connection = new SqlConnection(conectingInf))
             {
                 try
                 {
@@ -63,7 +67,7 @@ namespace usingbd
                 {
                     string tableName = listBoxTables.SelectedItem.ToString();
 
-                    using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+                    using (SqlConnection connection = new SqlConnection(conectingInf))
                     {
                         try
                         {
@@ -104,7 +108,7 @@ namespace usingbd
                             break;
                     }
 
-                    using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+                    using (SqlConnection connection = new SqlConnection(conectingInf))
                     {
                         try
                         {
@@ -144,7 +148,7 @@ namespace usingbd
 
                 if (result == DialogResult.Yes)
                 {
-                    using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+                    using (SqlConnection connection = new SqlConnection(conectingInf))
                     {
                         try
                         {
@@ -163,7 +167,7 @@ namespace usingbd
                                 ((DataTable)dataGridViewTable.DataSource).AcceptChanges(); // Очищаємо зміни
                                 MessageBox.Show("Зміни успішно збережені.");
 
-                                using (SqlConnection newConnection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+                                using (SqlConnection newConnection = new SqlConnection(conectingInf))
                                 {
                                     try
                                     {
