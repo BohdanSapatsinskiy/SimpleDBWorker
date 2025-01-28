@@ -14,10 +14,14 @@ namespace usingbd
 {
     public partial class Form1 : Form
     {
+        static string nameServer = "VITALIK\\MSSQLSERVER01";
+        static string nameDb = "candy_store";
+        string connectDb = $"Server={nameServer};Database={nameDb};Trusted_Connection=True;";
         public Form1()
         {
             InitializeComponent();
-            LoadTables();
+            tbServer.Text = nameServer;
+            tbDB.Text = nameDb;
         }
         static string serverName = "MSI";
         static string dataBaseName = "stories_site";
@@ -25,7 +29,7 @@ namespace usingbd
         string conectingInf = $"Server={serverName};Database={dataBaseName};Trusted_Connection=True;";
         private void LoadTables()
         {
-            using (SqlConnection connection = new SqlConnection(conectingInf))
+            using (SqlConnection connection = new SqlConnection(connectDb))
             {
                 try
                 {
@@ -56,11 +60,27 @@ namespace usingbd
             {
                 try
                 {
-                    connection.Open();
-                    string query = $"SELECT * FROM [{tableName}]";
-                    SqlDataAdapter adapter = new SqlDataAdapter(query, connection);
-                    DataTable table = new DataTable();
-                    adapter.Fill(table);
+                    string tableName = listBoxTables.SelectedItem.ToString();
+
+                    using (SqlConnection connection = new SqlConnection(connectDb))
+                    {
+                        try
+                        {
+                            connection.Open();
+                            string query = $"SELECT * FROM [{tableName}]";
+                            SqlDataAdapter adapter = new SqlDataAdapter(query, connection);
+                            DataTable table = new DataTable();
+                            adapter.Fill(table);
+
+                            dataGridViewTable.DataSource = table;
+                            labelInfo.Text = "Таблиця: " + tableName;
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
+                        }
+                    }
+
 
                     dataGridViewTable.DataSource = table;
                     labelInfo.Text = "Таблиця: " + tableName;
@@ -79,12 +99,27 @@ namespace usingbd
                 {
                     connection.Open();
 
-                    SqlCommand command = new SqlCommand(comandName, connection);
-                    command.CommandType = CommandType.StoredProcedure;
+                    switch (procedureName)
+                    {
+                        case "Інформація про історії":
+                            procedure= "GetClientTotalIncome";
+                            break;
+                        case "Підрахунок фанатів":
+                            procedure = "GetDetailedRevenueByDateRange";
+                            break;
+                        case "Топ 10 історій":
+                            procedure = "GetOrdersWithHighestAverageCheck";
+                            break;
+                        case "Топ 10 авторів":
+                            procedure = "GetRevenueByDateRange";
+                            break;
+                    }
 
-                    SqlDataAdapter adapter = new SqlDataAdapter(command);
-                    DataTable table = new DataTable();
-                    adapter.Fill(table);
+                    using (SqlConnection connection = new SqlConnection(connectDb))
+                    {
+                        try
+                        {
+                            connection.Open();
 
                     dataGridViewTable.DataSource = table;
 
@@ -154,7 +189,8 @@ namespace usingbd
 
                 if (result == DialogResult.Yes)
                 {
-                    using (SqlConnection connection = new SqlConnection(conectingInf))
+                    using (SqlConnection connection = new SqlConnection(connectDb))
+
                     {
                         try
                         {
@@ -173,8 +209,25 @@ namespace usingbd
                                 ((DataTable)dataGridViewTable.DataSource).AcceptChanges();
                                 MessageBox.Show("Зміни успішно збережені.");
 
+                                using (SqlConnection newConnection = new SqlConnection("Server=VITALIK\\MSSQLSERVER01;Database=candy_store;Trusted_Connection=True;"))
+                                {
+                                    try
+                                    {
+                                        connection.Open();
+                                        string query = $"SELECT * FROM [{tableName}]";
+                                        SqlDataAdapter newAdapter = new SqlDataAdapter(query, newConnection);
+                                        DataTable table = new DataTable();
+                                        newAdapter.Fill(table);
 
-                                LoadTableContent(tableName);
+                                        dataGridViewTable.DataSource = table;
+                                        labelInfo.Text = "Таблиця: " + tableName;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
+                                    }
+                                }
+
                             }
                             else
                             {
@@ -292,6 +345,15 @@ namespace usingbd
             {
                 MessageBox.Show("Слово для пошуку має бути не менше 3 символів.");
             }
+        }
+
+        private void buttonConnection_Click(object sender, EventArgs e)
+        {
+            nameServer = tbServer.Text.ToString();
+            nameDb = tbDB.Text.ToString();
+            connectDb = $"Server={nameServer};Database={nameDb};Trusted_Connection=True;";
+            LoadTables();
+
         }
     }
 }
