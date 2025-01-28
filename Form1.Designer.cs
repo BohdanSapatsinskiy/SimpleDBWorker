@@ -38,6 +38,11 @@
             this.textBoxFind = new System.Windows.Forms.TextBox();
             this.buttonFind = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
+            this.tbServer = new System.Windows.Forms.TextBox();
+            this.tbDB = new System.Windows.Forms.TextBox();
+            this.buttonConnection = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewTable)).BeginInit();
             this.SuspendLayout();
             // 
@@ -135,11 +140,58 @@
             this.label1.TabIndex = 15;
             this.label1.Text = "Пошук:";
             // 
+            // tbServer
+            // 
+            this.tbServer.Location = new System.Drawing.Point(12, 479);
+            this.tbServer.Name = "tbServer";
+            this.tbServer.Size = new System.Drawing.Size(146, 22);
+            this.tbServer.TabIndex = 16;
+            // 
+            // tbDB
+            // 
+            this.tbDB.Location = new System.Drawing.Point(13, 520);
+            this.tbDB.Name = "tbDB";
+            this.tbDB.Size = new System.Drawing.Size(145, 22);
+            this.tbDB.TabIndex = 17;
+            // 
+            // buttonConnection
+            // 
+            this.buttonConnection.Location = new System.Drawing.Point(175, 479);
+            this.buttonConnection.Name = "buttonConnection";
+            this.buttonConnection.Size = new System.Drawing.Size(115, 63);
+            this.buttonConnection.TabIndex = 18;
+            this.buttonConnection.Text = "Підключення";
+            this.buttonConnection.UseVisualStyleBackColor = true;
+            this.buttonConnection.Click += new System.EventHandler(this.buttonConnection_Click);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(12, 460);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(107, 16);
+            this.label2.TabIndex = 19;
+            this.label2.Text = "Назва сервера";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(12, 504);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(125, 16);
+            this.label3.TabIndex = 20;
+            this.label3.Text = "Назва бази даних";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1459, 563);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.buttonConnection);
+            this.Controls.Add(this.tbDB);
+            this.Controls.Add(this.tbServer);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.buttonFind);
             this.Controls.Add(this.textBoxFind);
@@ -169,6 +221,11 @@
         private System.Windows.Forms.TextBox textBoxFind;
         private System.Windows.Forms.Button buttonFind;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox tbServer;
+        private System.Windows.Forms.TextBox tbDB;
+        private System.Windows.Forms.Button buttonConnection;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
     }
 }
 

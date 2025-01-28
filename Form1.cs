@@ -14,14 +14,18 @@ namespace usingbd
 {
     public partial class Form1 : Form
     {
+        static string nameServer = "VITALIK\\MSSQLSERVER01";
+        static string nameDb = "candy_store";
+        string connectDb = $"Server={nameServer};Database={nameDb};Trusted_Connection=True;";
         public Form1()
         {
             InitializeComponent();
-            LoadTables();
+            tbServer.Text = nameServer;
+            tbDB.Text = nameDb;
         }
         private void LoadTables()
         {
-            using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+            using (SqlConnection connection = new SqlConnection(connectDb))
             {
                 try
                 {
@@ -62,26 +66,7 @@ namespace usingbd
                 if (showStatisticDetails == false)
                 {
                     string tableName = listBoxTables.SelectedItem.ToString();
-
-                    using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
-                    {
-                        try
-                        {
-                            connection.Open();
-                            string query = $"SELECT * FROM [{tableName}]";
-                            SqlDataAdapter adapter = new SqlDataAdapter(query, connection);
-                            DataTable table = new DataTable();
-                            adapter.Fill(table);
-
-                            dataGridViewTable.DataSource = table;
-                            labelInfo.Text = "Таблиця: " + tableName;
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
-                        }
-                    }
-
+                    LoadTableContent(tableName);
                     buttonSave.Visible = true;
                 }
                 else
@@ -91,20 +76,20 @@ namespace usingbd
                     switch (procedureName)
                     {
                         case "Інформація про історії":
-                            procedure="GetStoryDetails";
+                            procedure= "GetClientTotalIncome";
                             break;
                         case "Підрахунок фанатів":
-                            procedure = "CountAuthorsFans";
+                            procedure = "GetDetailedRevenueByDateRange";
                             break;
                         case "Топ 10 історій":
-                            procedure = "GetTop10StoriesByViews";
+                            procedure = "GetOrdersWithHighestAverageCheck";
                             break;
                         case "Топ 10 авторів":
-                            procedure = "GetTop10Authors";
+                            procedure = "GetRevenueByDateRange";
                             break;
                     }
 
-                    using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+                    using (SqlConnection connection = new SqlConnection(connectDb))
                     {
                         try
                         {
@@ -144,7 +129,7 @@ namespace usingbd
 
                 if (result == DialogResult.Yes)
                 {
-                    using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+                    using (SqlConnection connection = new SqlConnection(connectDb))
                     {
                         try
                         {
@@ -159,28 +144,11 @@ namespace usingbd
                                 adapter.InsertCommand = builder.GetInsertCommand();
                                 adapter.DeleteCommand = builder.GetDeleteCommand();
 
-                                adapter.Update(changes); // Застосовуємо зміни до бази даних
-                                ((DataTable)dataGridViewTable.DataSource).AcceptChanges(); // Очищаємо зміни
+                                adapter.Update(changes); 
+                                ((DataTable)dataGridViewTable.DataSource).AcceptChanges();
                                 MessageBox.Show("Зміни успішно збережені.");
 
-                                using (SqlConnection newConnection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
-                                {
-                                    try
-                                    {
-                                        connection.Open();
-                                        string query = $"SELECT * FROM [{tableName}]";
-                                        SqlDataAdapter newAdapter = new SqlDataAdapter(query, newConnection);
-                                        DataTable table = new DataTable();
-                                        newAdapter.Fill(table);
-
-                                        dataGridViewTable.DataSource = table;
-                                        labelInfo.Text = "Таблиця: " + tableName;
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
-                                    }
-                                }
+                                LoadTableContent(tableName);
                             }
                             else
                             {
@@ -301,6 +269,35 @@ namespace usingbd
             else
             {
                 MessageBox.Show("Слово для пошуку має бути не менше 3 символів.");
+            }
+        }
+
+        private void buttonConnection_Click(object sender, EventArgs e)
+        {
+            nameServer = tbServer.Text.ToString();
+            nameDb = tbDB.Text.ToString();
+            connectDb = $"Server={nameServer};Database={nameDb};Trusted_Connection=True;";
+            LoadTables();
+        }
+        private void LoadTableContent(string tableName)
+        {
+            using (SqlConnection connection = new SqlConnection(connectDb))
+            {
+                try
+                {
+                    connection.Open();
+                    string query = $"SELECT * FROM [{tableName}]";
+                    SqlDataAdapter adapter = new SqlDataAdapter(query, connection);
+                    DataTable table = new DataTable();
+                    adapter.Fill(table);
+
+                    dataGridViewTable.DataSource = table;
+                    labelInfo.Text = "Таблиця: " + tableName;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
+                }
             }
         }
     }
