@@ -71,9 +71,9 @@ namespace usingbd
                 }
             }
         }
-        private void showProcedure(string comandName, string message)
+        private void showProcedure(string comandName)
         {
-            using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+            using (SqlConnection connection = new SqlConnection(conectingInf))
             {
                 try
                 {
@@ -88,7 +88,7 @@ namespace usingbd
 
                     dataGridViewTable.DataSource = table;
 
-                    labelInfo.Text = message;
+                    labelInfo.Text = comandName;
                 }
                 catch (Exception ex)
                 {
@@ -96,50 +96,48 @@ namespace usingbd
                 }
             }
         }
+        private void LoadProcedures()
+        {
+            using (SqlConnection connection = new SqlConnection(conectingInf))
+            {
+                try
+                {
+                    connection.Open();
+                    string query = @"
+                    SELECT name 
+                    FROM sys.objects 
+                    WHERE type = 'P' AND is_ms_shipped = 0";
+
+                    SqlCommand command = new SqlCommand(query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    listBoxTables.Items.Clear();
+                    while (reader.Read())
+                    {
+                        listBoxTables.Items.Add(reader["name"].ToString());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Помилка при завантаженні процедур: " + ex.Message);
+                }
+            }
+        }
 
         bool showStatisticDetails = false;
-        string[] statistics = {
-            "Підрахунок фанатів",
-            "Топ 10 історій",
-            "Топ 10 авторів",
-            "Інформація про історії"};
 
-        string procedureName = "";
-        string procedure = "";
         private void listBoxTables_SelectedIndexChanged_1(object sender, EventArgs e)
         {
             if (listBoxTables.SelectedItem != null)
             {
+                string tableOrProcedure = listBoxTables.SelectedItem.ToString();
                 if (showStatisticDetails == false)
                 {
-                    string tableName = listBoxTables.SelectedItem.ToString();
-
-                    LoadTableContent(tableName);
-
-                    buttonSave.Visible = true;
+                    LoadTableContent(tableOrProcedure);
                 }
                 else
                 {                   
-                    procedureName = listBoxTables.SelectedItem.ToString();
-
-                    switch (procedureName)
-                    {
-                        case "Інформація про історії":
-                            procedure="GetStoryDetails";
-                            break;
-                        case "Підрахунок фанатів":
-                            procedure = "CountAuthorsFans";
-                            break;
-                        case "Топ 10 історій":
-                            procedure = "GetTop10StoriesByViews";
-                            break;
-                        case "Топ 10 авторів":
-                            procedure = "GetTop10Authors";
-                            break;
-                    }
-
-                    showProcedure(procedure, procedureName);
-
+                    showProcedure(tableOrProcedure);
                 }
             }
         }
@@ -171,8 +169,8 @@ namespace usingbd
                                 adapter.InsertCommand = builder.GetInsertCommand();
                                 adapter.DeleteCommand = builder.GetDeleteCommand();
 
-                                adapter.Update(changes); // Застосовуємо зміни до бази даних
-                                ((DataTable)dataGridViewTable.DataSource).AcceptChanges(); // Очищаємо зміни
+                                adapter.Update(changes);
+                                ((DataTable)dataGridViewTable.DataSource).AcceptChanges();
                                 MessageBox.Show("Зміни успішно збережені.");
 
 
@@ -201,13 +199,9 @@ namespace usingbd
 
         private void buttonShowStatistic_Click(object sender, EventArgs e)
         {
+            LoadProcedures();
             showStatisticDetails = true;
             buttonSave.Visible = false;
-            listBoxTables.Items.Clear();
-            for (int i = 0; i < statistics.Length; i++)
-            {
-                listBoxTables.Items.Add(statistics[i]);
-            }
         }
 
         private void buttonFind_Click(object sender, EventArgs e)
