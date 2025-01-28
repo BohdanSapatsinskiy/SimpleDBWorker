@@ -23,6 +23,10 @@ namespace usingbd
             tbServer.Text = nameServer;
             tbDB.Text = nameDb;
         }
+        static string serverName = "MSI";
+        static string dataBaseName = "stories_site";
+
+        string conectingInf = $"Server={serverName};Database={dataBaseName};Trusted_Connection=True;";
         private void LoadTables()
         {
             using (SqlConnection connection = new SqlConnection(connectDb))
@@ -50,20 +54,11 @@ namespace usingbd
             }
         }
 
-        bool showStatisticDetails = false;
-        string[] statistics = {
-            "Підрахунок фанатів",
-            "Топ 10 історій",
-            "Топ 10 авторів",
-            "Інформація про історії"};
-
-        string procedureName = "";
-        string procedure = "";
-        private void listBoxTables_SelectedIndexChanged_1(object sender, EventArgs e)
+        private void LoadTableContent(string tableName)
         {
-            if (listBoxTables.SelectedItem != null)
+            using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
             {
-                if (showStatisticDetails == false)
+                try
                 {
                     string tableName = listBoxTables.SelectedItem.ToString();
 
@@ -86,11 +81,23 @@ namespace usingbd
                         }
                     }
 
-                    buttonSave.Visible = true;
+
+                    dataGridViewTable.DataSource = table;
+                    labelInfo.Text = "Таблиця: " + tableName;
                 }
-                else
-                {                   
-                    procedureName = listBoxTables.SelectedItem.ToString();
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
+                }
+            }
+        }
+        private void showProcedure(string comandName)
+        {
+            using (SqlConnection connection = new SqlConnection(conectingInf))
+            {
+                try
+                {
+                    connection.Open();
 
                     switch (procedureName)
                     {
@@ -114,24 +121,58 @@ namespace usingbd
                         {
                             connection.Open();
 
-                            SqlCommand command = new SqlCommand(procedure, connection);
-                            command.CommandType = CommandType.StoredProcedure;
+                    dataGridViewTable.DataSource = table;
 
-                            SqlDataAdapter adapter = new SqlDataAdapter(command);
-                            DataTable table = new DataTable();
-                            adapter.Fill(table);
+                    labelInfo.Text = comandName;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Помилка при виконанні процедури: " + ex.Message);
+                }
+            }
+        }
+        private void LoadProcedures()
+        {
+            using (SqlConnection connection = new SqlConnection(conectingInf))
+            {
+                try
+                {
+                    connection.Open();
+                    string query = @"
+                    SELECT name 
+                    FROM sys.objects 
+                    WHERE type = 'P' AND is_ms_shipped = 0";
 
-                            dataGridViewTable.DataSource = table;
+                    SqlCommand command = new SqlCommand(query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
 
-                            labelInfo.Text = procedureName;
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show("Помилка при виконанні процедури: " + ex.Message);
-                        }
+                    listBoxTables.Items.Clear();
+                    while (reader.Read())
+                    {
+                        listBoxTables.Items.Add(reader["name"].ToString());
                     }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Помилка при завантаженні процедур: " + ex.Message);
+                }
+            }
+        }
 
+        bool showStatisticDetails = false;
 
+        private void listBoxTables_SelectedIndexChanged_1(object sender, EventArgs e)
+        {
+            if (listBoxTables.SelectedItem != null)
+            {
+                string tableOrProcedure = listBoxTables.SelectedItem.ToString();
+                if (showStatisticDetails == false)
+                {
+                    LoadTableContent(tableOrProcedure);
+                }
+                else
+                {                   
+                    showProcedure(tableOrProcedure);
                 }
             }
         }
@@ -149,6 +190,7 @@ namespace usingbd
                 if (result == DialogResult.Yes)
                 {
                     using (SqlConnection connection = new SqlConnection(connectDb))
+
                     {
                         try
                         {
@@ -163,8 +205,8 @@ namespace usingbd
                                 adapter.InsertCommand = builder.GetInsertCommand();
                                 adapter.DeleteCommand = builder.GetDeleteCommand();
 
-                                adapter.Update(changes); // Застосовуємо зміни до бази даних
-                                ((DataTable)dataGridViewTable.DataSource).AcceptChanges(); // Очищаємо зміни
+                                adapter.Update(changes);
+                                ((DataTable)dataGridViewTable.DataSource).AcceptChanges();
                                 MessageBox.Show("Зміни успішно збережені.");
 
                                 using (SqlConnection newConnection = new SqlConnection("Server=VITALIK\\MSSQLSERVER01;Database=candy_store;Trusted_Connection=True;"))
@@ -185,6 +227,7 @@ namespace usingbd
                                         MessageBox.Show("Помилка при завантаженні даних таблиці: " + ex.Message);
                                     }
                                 }
+
                             }
                             else
                             {
@@ -209,13 +252,9 @@ namespace usingbd
 
         private void buttonShowStatistic_Click(object sender, EventArgs e)
         {
+            LoadProcedures();
             showStatisticDetails = true;
             buttonSave.Visible = false;
-            listBoxTables.Items.Clear();
-            for (int i = 0; i < statistics.Length; i++)
-            {
-                listBoxTables.Items.Add(statistics[i]);
-            }
         }
 
         private void buttonFind_Click(object sender, EventArgs e)
