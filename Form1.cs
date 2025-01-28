@@ -14,14 +14,18 @@ namespace usingbd
 {
     public partial class Form1 : Form
     {
+        static string nameServer = "VITALIK\\MSSQLSERVER01";
+        static string nameDb = "candy_store";
+        string connectDb = $"Server={nameServer};Database={nameDb};Trusted_Connection=True;";
         public Form1()
         {
             InitializeComponent();
-            LoadTables();
+            tbServer.Text = nameServer;
+            tbDB.Text = nameDb;
         }
         private void LoadTables()
         {
-            using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+            using (SqlConnection connection = new SqlConnection(connectDb))
             {
                 try
                 {
@@ -63,7 +67,7 @@ namespace usingbd
                 {
                     string tableName = listBoxTables.SelectedItem.ToString();
 
-                    using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+                    using (SqlConnection connection = new SqlConnection(connectDb))
                     {
                         try
                         {
@@ -91,20 +95,20 @@ namespace usingbd
                     switch (procedureName)
                     {
                         case "Інформація про історії":
-                            procedure="GetStoryDetails";
+                            procedure= "GetClientTotalIncome";
                             break;
                         case "Підрахунок фанатів":
-                            procedure = "CountAuthorsFans";
+                            procedure = "GetDetailedRevenueByDateRange";
                             break;
                         case "Топ 10 історій":
-                            procedure = "GetTop10StoriesByViews";
+                            procedure = "GetOrdersWithHighestAverageCheck";
                             break;
                         case "Топ 10 авторів":
-                            procedure = "GetTop10Authors";
+                            procedure = "GetRevenueByDateRange";
                             break;
                     }
 
-                    using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+                    using (SqlConnection connection = new SqlConnection(connectDb))
                     {
                         try
                         {
@@ -144,7 +148,7 @@ namespace usingbd
 
                 if (result == DialogResult.Yes)
                 {
-                    using (SqlConnection connection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+                    using (SqlConnection connection = new SqlConnection(connectDb))
                     {
                         try
                         {
@@ -163,7 +167,7 @@ namespace usingbd
                                 ((DataTable)dataGridViewTable.DataSource).AcceptChanges(); // Очищаємо зміни
                                 MessageBox.Show("Зміни успішно збережені.");
 
-                                using (SqlConnection newConnection = new SqlConnection("Server=MSI;Database=stories_site;Trusted_Connection=True;"))
+                                using (SqlConnection newConnection = new SqlConnection("Server=VITALIK\\MSSQLSERVER01;Database=candy_store;Trusted_Connection=True;"))
                                 {
                                     try
                                     {
@@ -302,6 +306,15 @@ namespace usingbd
             {
                 MessageBox.Show("Слово для пошуку має бути не менше 3 символів.");
             }
+        }
+
+        private void buttonConnection_Click(object sender, EventArgs e)
+        {
+            nameServer = tbServer.Text.ToString();
+            nameDb = tbDB.Text.ToString();
+            connectDb = $"Server={nameServer};Database={nameDb};Trusted_Connection=True;";
+            LoadTables();
+
         }
     }
 }
